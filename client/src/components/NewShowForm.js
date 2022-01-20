@@ -24,6 +24,12 @@ const NewShowForm = (props) => {
         body: JSON.stringify(newShow)
       })
       if (!response.ok) {
+        if (response.status === 422) {
+          const body = await response.json()
+          console.log(body);
+          const errors = translateServerErrors(body.errors)
+          setErrors(errors)
+        }
         const errorMessage = `${response.status} (${response.statusText})`
         const error = new Error(errorMessage)
         throw error
