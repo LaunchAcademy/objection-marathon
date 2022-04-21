@@ -2,7 +2,8 @@ import React, { useState } from "react"
 import { Redirect } from "react-router-dom"
 
 import ErrorList from "./ErrorList"
-import translateServerErrors from "./../services/translateServerErrors"
+import translateServerErrors from "./../services/translateServerErrors.js"
+import { set } from "lodash"
 
 const NewShowForm = (props) => {
   const [newShow, setNewShow] = useState({
@@ -24,12 +25,17 @@ const NewShowForm = (props) => {
         body: JSON.stringify(newShow)
       })
       if (!response.ok) {
+        if (response.status === 422) {
+          const body = await response.json()
+          const errorsObject = translateServerErrors(body.errors)
+          return setErrors(errorsObject)
+        }
         const errorMessage = `${response.status} (${response.statusText})`
         const error = new Error(errorMessage)
         throw error
       }
-      const body = await response.json()
-      console.log("Show created successfully!", body)
+      const responseBody = await response.json()
+      console.log("Show created successfully!", responseBody)
       setShouldRedirect(true)
     } catch (err) {
       console.error(`Error in fetch: ${err.message}`)
